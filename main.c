@@ -13,7 +13,7 @@ int main() {
 
     clock_t begin = clock();
 
-    char * source = "#macro [test, 1] struct Tmp : {  var meme :?! u8 5;  }";
+    char * source = "struct Test : {   } struct Another : {   }";
 
     // Perform lexical analysis
     List * tokens = lex(source);

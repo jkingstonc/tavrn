@@ -58,7 +58,9 @@ typedef struct ASTNode{
         }rootProgramAST;
         // Struct
         struct StructAST{
-            const char * name;
+            Token * identifier;
+            List * members;
+            List * methods;
         }structAST;
         // Expressions
         struct UnaryAST{                         // Unary operator#
@@ -88,10 +90,11 @@ typedef struct ASTNode{
             struct ASTNode * elseBody;
         }ifAST;
         struct VarAST{              // Variable decleration
+            Token * identifier;
             TokenType type;         // Type of the variable
             uint8_t modifierBits;   // Bit field for modifiers
             struct ASTNode * initialiser;   // Initialiser value
-        }varAST;
+        }varDefineAST;
     };
 }ASTNode;
 

@@ -370,6 +370,5 @@ static int checkKeyword(const char * nextChars, TokenType keywordType){
     }
     addToken(keywordType);
     advance(len);
-    //resetSavePoint();
     return 1;
 }

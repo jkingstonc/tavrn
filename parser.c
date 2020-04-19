@@ -19,7 +19,7 @@
 || type == TOK_I8 || type == TOK_U16 || type == TOK_I16 || type == TOK_U32 || type == TOK_I32 || type == TOK_U64 \
 || type == TOK_I64 || type == TOK_F32 || type == TOK_F64)
 
-#define IS_MODIFIER(type) (type==TOK_BANG || type==TOK_QUESTION)
+#define IS_MODIFIER(type) (type==TOK_BANG || type==TOK_QUESTION || type==TOK_STAR)
 
 static Parser * newParser(List * tokens){
     parser = (Parser*)malloc(sizeof(Parser));
@@ -37,20 +37,35 @@ void deleteParser(){
 }
 
 static void deleteASTNode(ASTNode * node){
-
     switch(node->type){
         case PROGRAM:{
+            printf("deleting root program!\n");
+            // We have to store the program size otherwise it will change when we delete nodes
+            uint32_t programSize = node->rootProgramAST.rootProgramASTNodes->size;
             // Loop over each root node in the program
-            for(uint32_t i = 0; node->rootProgramAST.rootProgramASTNodes->size; i++){
+            for(uint32_t i = 0; i<programSize; i++)
                 deleteASTNode(getList(node->rootProgramAST.rootProgramASTNodes, i));
-            }
             freeList(node->rootProgramAST.rootProgramASTNodes);
             free(node);
             break;
         }
-
+        case STMT_STRUCT:{
+            printf("deleting struct!\n");
+            // Loop over each root node in the program
+            for(uint32_t i = 0; node->structAST.members->size; i++)
+                deleteASTNode(getList(node->structAST.members, i));
+            for(uint32_t i = 0; node->structAST.methods->size; i++)
+                deleteASTNode(getList(node->structAST.methods, i));
+            freeList(node->structAST.members);
+            freeList(node->structAST.methods);
+            free(node);
+            break;
+        }
         case STMT_VAR_DEFINE:{
-
+            printf("deleting var!\n");
+            if(node->varDefineAST.initialiser)
+                deleteASTNode(node->varDefineAST.initialiser);
+            free(node);
             break;
         }
     }
@@ -58,9 +73,7 @@ static void deleteASTNode(ASTNode * node){
 
 ASTNode * parse(List * tokens){
     printf("starting parsing...\n");
-
     parser = newParser(tokens);
-
     parseProgram();
     return 0;
 }
@@ -68,7 +81,6 @@ ASTNode * parse(List * tokens){
 
 static void parseProgram(){
     printf("parse program\n");
-
 
     // Create the root program
     ASTNode * rootProgramAST = (ASTNode*)malloc(sizeof(ASTNode));
@@ -78,13 +90,8 @@ static void parseProgram(){
     // Add the root program to the parser
     parser->program = rootProgramAST;
 
-
-    // While we haven't reached the end token, add each preliminary AST node to the root programi
-    while(!END() && NO_ERROR()){
-        ASTNode * node = parsePreliminary();
-        //insertList(parser->program->rootProgramASTNodes, preliminary(), sizeof(ASTNode*));
-        break;
-    }
+    // While we haven't reached the end token, add each preliminary AST node to the root program
+    while(!END() && NO_ERROR()) addList(rootProgramAST->rootProgramAST.rootProgramASTNodes, parsePreliminary());
 }
 
 /**
@@ -103,7 +110,18 @@ static ASTNode * parsePreliminary(){
 
 static ASTNode * parseStruct(){
     printf("--- parsing struct!\n");
-    if(NO_ERROR()) parseConsume(TOK_IDENTIFIER, "Expected identifier after struct...");
+
+    ASTNode * structNode = (ASTNode*)malloc(sizeof(ASTNode));
+    structNode->type = STMT_STRUCT;
+    structNode->structAST.members = (List*)malloc(sizeof(List));
+    structNode->structAST.methods = (List*)malloc(sizeof(List));
+    initList(structNode->structAST.members);
+    initList(structNode->structAST.methods);
+
+    if(NO_ERROR()) {
+        Token * identifier = parseConsume(TOK_IDENTIFIER, "Expected identifier after struct...");
+        structNode->structAST.identifier = identifier;
+    }
     if(NO_ERROR()) parseConsume(TOK_COLON, "Expected ':' after struct identifier...");
     if(NO_ERROR()) parseConsume(TOK_LEFT_CURLY, "Expected '{' after ':'...");
 
@@ -113,14 +131,14 @@ static ASTNode * parseStruct(){
 
     while(!END() && NO_ERROR() && PEEK()->type != TOK_RIGHT_CURLY){
         if(parseConsumePeek(TOK_VAR))
-            parseVarDefine();
+            addList(structNode->structAST.members, parseVarDefine());
         else if(parseConsumePeek(TOK_FUN))
-            parseFunDefine(1);
+            addList(structNode->structAST.members, parseFunDefine(1));
         else
             parseError(PARSE_UNEXPECTED_TOKEN, "Struct body must either be variable or function!");
     }
     if(NO_ERROR()) parseConsume(TOK_RIGHT_CURLY, "Expected closing '}' after struct decleration...");
-    return 0;
+    return structNode;
 }
 
 static ASTNode * parseEnum(){
@@ -137,28 +155,27 @@ static ASTNode * parseEnum(){
 
 static ASTNode * parseVarDefine(){
     ASTNode * varDefine = (ASTNode*)malloc(sizeof(ASTNode));
+    varDefine->type = STMT_VAR_DEFINE;
     Token * identifier = parseConsume(TOK_IDENTIFIER, "Expected var identifier!");
+    varDefine->varDefineAST.identifier = identifier;
     // Check if we are initialising the variable
     if(parseConsumePeek(TOK_COLON)){
         // Check for any modifiers
         while(IS_MODIFIER(PEEK()->type))
-            varDefine->varAST.modifierBits &= getModifierBit(parseAdvance(1)->type);
+            varDefine->varDefineAST.modifierBits &= getModifierBit(parseAdvance(1)->type);
         // We could be declaring a type, or using a custom structure identifier
         if(IS_TYPE(PEEK()->type) || PEEK()->type==TOK_IDENTIFIER){
             Token * dataType = parseAdvance(1);
-            varDefine->varAST.type = dataType->type;
+            varDefine->varDefineAST.type = dataType->type;
         }
         // Check if we are initiailising the value
         // TODO This isn't very robust as it could mess with the synxax...
         if(PEEK()->type!=TOK_SEMICOLON)
-            varDefine->varAST.initialiser = parseExpression();
+            varDefine->varDefineAST.initialiser = parseExpression();
     }
     parseConsume(TOK_SEMICOLON, "Expected semi-colon after variable decleration!");
 
-    // TODO remove this, this is only for testing
-    free(varDefine);
-
-    return 0;
+    return varDefine;
 }
 
 static ASTNode * parseFunDefine(uint8_t isStructMember){
@@ -206,5 +223,6 @@ static inline uint8_t getModifierBit(TokenType tokenType){
     switch(tokenType){
         case TOK_BANG: return 1;
         case TOK_QUESTION: return 2;
+        case TOK_STAR: return 3;
     }
 }

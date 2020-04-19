@@ -4,6 +4,7 @@
 
 #include "header/utils.h"
 #include "header/tavrn.h"
+#include "header/parser.h"
 
 void initList(List * list){
     list->startNode = NULL;
@@ -23,11 +24,14 @@ void addList(List * list, void * element){
     list->size++;
 }
 
+/**
+Get the data from a list index
+*/
 void * getList(List * list, uint32_t index){
     ListNode * current = list->startNode;
     for(uint32_t i = 0; i<index; i++)
         current=current->next;
-    return current;
+    return current->data;
 }
 
 void insertList(List * list, void * element, uint32_t index){
