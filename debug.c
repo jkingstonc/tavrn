@@ -103,7 +103,7 @@ void debugTokenList(List * list){
             case TOK_DIRECTIVE:
             case TOK_IDENTIFIER:
             case STRING_LITERAL:
-                printf("Token: %s, l: %d i: %d, value: %s\n", typeDebugStrings[token->type], token->line, token->indent, (char*)(token->value.string)); break;
+                printf("Token: %s, l: %d i: %d, value: %s\n", typeDebugStrings[token->type], token->line, token->indent, (char*)(token->value.data)); break;
             default:
                 printf("Token: %s, l: %d i: %d\n", typeDebugStrings[token->type], token->line, token->indent); break;
         }

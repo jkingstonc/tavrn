@@ -78,7 +78,7 @@ void removeTokenList(List * list, uint32_t index){
         current->next = current->next->next;
         Token * token = (Token*)temp->data;
         if(token->type==STRING_LITERAL || token->type==NUMBER_LITERAL) {
-            free((char*)token->value.string);
+            free((char*)token->value.data);
         }
         free(temp->data);
         free(temp);
@@ -104,7 +104,7 @@ void freeTokenList(List *list) {
         current = current->next;
         Token * token = (Token*)temp->data;
         if(token->type==STRING_LITERAL || token->type==NUMBER_LITERAL) {
-            free((char*)token->value.string);
+            free((char*)token->value.data);
         }
         free(temp);
     }

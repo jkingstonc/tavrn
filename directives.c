@@ -40,7 +40,7 @@ List * processDirectives(char * currentFileName, List * tokens){
         if(PEEK()->type==TOK_DIRECTIVE) {
             // printf("directive!\n");
             // Check what the macro actually says
-            if (strncmp(PEEK()->value.string, "macro", 5) == 0) {
+            if (strncmp(PEEK()->value.data, "macro", 5) == 0) {
                 char * macroName,  * macroValue;
 
                 dirAdvanceDel(1);  // Consume the #macro token
@@ -85,7 +85,7 @@ List * processDirectives(char * currentFileName, List * tokens){
 static inline void * dirAdvance(uint32_t amount){
     void * data;
     for(int i = 0; i<amount; i++) {
-        data = data = ((Token *) directivesProcessor->currentToken->data)->value.string;
+        data = data = ((Token *) directivesProcessor->currentToken->data)->value.data;
         directivesProcessor->currentToken = directivesProcessor->currentToken->next;
     }
     return data;
@@ -99,7 +99,7 @@ static inline void * dirAdvanceDel(uint32_t amount){
     void * data;
     for(int i = 0; i<amount; i++){
         // Retrieve the data before advancing
-        data = ((Token*)directivesProcessor->currentToken->data)->value.string;
+        data = ((Token*)directivesProcessor->currentToken->data)->value.data;
         ListNode * next = directivesProcessor->currentToken->next;
         // removeList NOT removeTokenList as we want to preserve the data, we will free it later!
         removeList(directivesProcessor->tokens, directivesProcessor->currentTokenIndex);
@@ -128,13 +128,13 @@ static inline uint8_t dirConsumeDel(TokenType tokenType, const char * msg){
  * Consume a value then delete the token from the token list
  */
 static inline void * dirConsumeValueDel(const char * msg){
-    if(END() || PEEK()->value.string == NULL){
+    if(END() || PEEK()->value.data == NULL){
         dirError(DIR_UNEXPECTED_TOKEN, msg);
         return 0;
     }
     return dirAdvanceDel(1);
 //	// Get the value
-//	void * value = PEEK()->value.string;
+//	void * value = PEEK()->value.data;
 //	// Then delete the actual token
 //	removeTokenList(directivesProcessor->tokens, directivesProcessor->currentTokenIndex);
 //	// Then return the value

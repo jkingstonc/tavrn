@@ -95,7 +95,7 @@ typedef enum TokenType{
 }TokenType;
 
 typedef union TokenValue{
-    char * string;
+    char * data;
 }TokenValue;
 
 /**

@@ -8,11 +8,12 @@
 
 #include <time.h>
 
+
 int main() {
 
     clock_t begin = clock();
 
-    char * source = "#macro [test, 1]";
+    char * source = "#macro [test, 1] struct Tmp : {  var meme :?! u8 5;  }";
 
     // Perform lexical analysis
     List * tokens = lex(source);

@@ -150,7 +150,7 @@ static inline void addTokenValue(TokenType tokenType, TokenValue value){
 static inline void addToken(TokenType tokenType){
     Token * token = (Token*) malloc(sizeof(Token));
     token->type=tokenType;
-    token->value.string = NULL;
+    token->value.data = NULL;
     token->line = lexer->currentLine;
     token->indent = lexer->savePointIndent;
     addList(lexer->tokens, token);
@@ -224,7 +224,7 @@ static void stringLiteral(const char quoteType){
         }
         appendString(str, c);
     }
-    TokenValue tokenValue = {.string = str};
+    TokenValue tokenValue = {.data = str};
     addTokenValue(STRING_LITERAL, tokenValue);
     advance(1);
 }
@@ -294,7 +294,7 @@ static void alpha(const char startingChar){
         }
         appendString(identifier, c);
     }
-    TokenValue value = {.string = identifier};
+    TokenValue value = {.data = identifier};
     addTokenValue(TOK_IDENTIFIER, value);
 }
 
@@ -320,7 +320,7 @@ static void numeric(const char startingDigit, int base){
             appendString(number, c);
         }
     }
-    TokenValue tokenValue = {.string = number};
+    TokenValue tokenValue = {.data = number};
     addTokenValue(NUMBER_LITERAL, tokenValue);
 }
 
@@ -337,7 +337,7 @@ static void directive(){
         }
         appendString(directive, c);
     }
-    TokenValue value = {.string = directive};
+    TokenValue value = {.data = directive};
     addTokenValue(TOK_DIRECTIVE, value);
 }
 

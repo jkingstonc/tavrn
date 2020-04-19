@@ -7,6 +7,7 @@
 
 #include "utils.h"
 #include "tavrn.h"
+#include "debug.h"
 
 struct SymbolTable;
 struct SymbolEntry;
@@ -86,6 +87,11 @@ typedef struct ASTNode{
             List elseIfBodies;
             struct ASTNode * elseBody;
         }ifAST;
+        struct VarAST{              // Variable decleration
+            TokenType type;         // Type of the variable
+            uint8_t modifierBits;   // Bit field for modifiers
+            struct ASTNode * initialiser;   // Initialiser value
+        }varAST;
     };
 }ASTNode;
 
@@ -130,12 +136,16 @@ static ASTNode * parseStruct();
 static ASTNode * parseEnum();
 static ASTNode * parseVarDefine();
 static ASTNode * parseFunDefine(uint8_t isStructMember);
+static ASTNode * parseExpression();
 
 static void deleteProgram();
 static inline Token * current();
 static inline Token * prev();
-static inline void parseAdvance(uint32_t amount);
+static inline Token * parseAdvance(uint32_t amount);
 static inline ParseError parseError(ParseError parseError, const char * msg);
-static inline int parseConsume(TokenType tokenType, const char * msg);
+static inline Token * parseConsumePeek(TokenType tokenType);
+static inline Token * parseConsume(TokenType tokenType, const char * msg);
+
+static inline uint8_t getModifierBit(TokenType tokenType);
 
 #endif //TAVRN_PARSER_H
