@@ -35,6 +35,7 @@ typedef struct Map{
 
 void initList(List * list);
 void addList(List * list, void * element);
+void * getList(List * list, uint32_t index);
 void insertList(List * list, void * element, uint32_t index);
 void removeList(List * list, uint32_t index);
 void removeTokenList(List * list, uint32_t index);

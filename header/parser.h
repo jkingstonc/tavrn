@@ -37,7 +37,7 @@ typedef enum ASTNodeType{
     STMT_CONTINUE,
     STMT_STRUCT,
     STMT_FUNC,
-    STMT_DEFINE,
+    STMT_VAR_DEFINE,
     STMT_BREAK,
     STMT_FOR_ITER,
     STMT_FOR,
@@ -138,7 +138,7 @@ static ASTNode * parseVarDefine();
 static ASTNode * parseFunDefine(uint8_t isStructMember);
 static ASTNode * parseExpression();
 
-static void deleteProgram();
+static void deleteASTNode(ASTNode * node);
 static inline Token * current();
 static inline Token * prev();
 static inline Token * parseAdvance(uint32_t amount);

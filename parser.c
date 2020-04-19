@@ -32,8 +32,28 @@ static Parser * newParser(List * tokens){
     return parser;
 }
 void deleteParser(){
-    deleteProgram();
+    deleteASTNode(parser->program);
     free(parser);
+}
+
+static void deleteASTNode(ASTNode * node){
+
+    switch(node->type){
+        case PROGRAM:{
+            // Loop over each root node in the program
+            for(uint32_t i = 0; node->rootProgramAST.rootProgramASTNodes->size; i++){
+                deleteASTNode(getList(node->rootProgramAST.rootProgramASTNodes, i));
+            }
+            freeList(node->rootProgramAST.rootProgramASTNodes);
+            free(node);
+            break;
+        }
+
+        case STMT_VAR_DEFINE:{
+
+            break;
+        }
+    }
 }
 
 ASTNode * parse(List * tokens){
@@ -48,11 +68,22 @@ ASTNode * parse(List * tokens){
 
 static void parseProgram(){
     printf("parse program\n");
+
+
+    // Create the root program
+    ASTNode * rootProgramAST = (ASTNode*)malloc(sizeof(ASTNode));
+    rootProgramAST->type = PROGRAM;
+    rootProgramAST->rootProgramAST.rootProgramASTNodes = (List*)malloc(sizeof(List));
+    initList(rootProgramAST->rootProgramAST.rootProgramASTNodes);
+    // Add the root program to the parser
+    parser->program = rootProgramAST;
+
+
     // While we haven't reached the end token, add each preliminary AST node to the root programi
     while(!END() && NO_ERROR()){
-        parsePreliminary();
-        break;
+        ASTNode * node = parsePreliminary();
         //insertList(parser->program->rootProgramASTNodes, preliminary(), sizeof(ASTNode*));
+        break;
     }
 }
 
@@ -60,21 +91,17 @@ static void parseProgram(){
  * The root items in the program
  */
 static ASTNode * parsePreliminary(){
-    printf("preliminary!\n");
-    switch(PEEK()->type){
-        case TOK_STRUCT : {
-            return parseStruct();
-        }
-        case TOK_ENUM : {
-            return parseEnum();
-        }
-    }
-    return 0;
+    if(parseConsumePeek(TOK_STRUCT))
+        return parseStruct();
+    if(parseConsumePeek(TOK_ENUM))
+        return parseEnum();
+    else
+        parseError(PARSE_UNEXPECTED_TOKEN, "Expected struct/enum/functions/variables!");
+    return NULL;
 }
 
 
 static ASTNode * parseStruct(){
-    parseAdvance(1); // Eat the TOK_STRUCT
     printf("--- parsing struct!\n");
     if(NO_ERROR()) parseConsume(TOK_IDENTIFIER, "Expected identifier after struct...");
     if(NO_ERROR()) parseConsume(TOK_COLON, "Expected ':' after struct identifier...");
@@ -84,9 +111,7 @@ static ASTNode * parseStruct(){
      * Need a way to check that we havent reached the end otherwise we will peek nothing :(
      */
 
-    while(NO_ERROR() && PEEK()->type != TOK_RIGHT_CURLY){
-
-
+    while(!END() && NO_ERROR() && PEEK()->type != TOK_RIGHT_CURLY){
         if(parseConsumePeek(TOK_VAR))
             parseVarDefine();
         else if(parseConsumePeek(TOK_FUN))
@@ -99,12 +124,12 @@ static ASTNode * parseStruct(){
 }
 
 static ASTNode * parseEnum(){
-    parseAdvance(1); // Eat the TOK_ENUM
     printf("--- parsing enum!\n");
     if(NO_ERROR()) parseConsume(TOK_IDENTIFIER, "Expected identifier after enum...");
     if(NO_ERROR()) parseConsume(TOK_COLON, "Expected ':' after enum identifier...");
     if(NO_ERROR()) parseConsume(TOK_LEFT_CURLY, "Expected '{' after ':'...");
-    while(NO_ERROR() && PEEK()->type != TOK_RIGHT_CURLY){
+    while(!END() && NO_ERROR() && PEEK()->type != TOK_RIGHT_CURLY){
+
     }
     if(NO_ERROR()) parseConsume(TOK_RIGHT_CURLY, "Expected closing '}' after enum decleration...");
     return 0;
@@ -128,10 +153,11 @@ static ASTNode * parseVarDefine(){
         if(PEEK()->type!=TOK_SEMICOLON)
             varDefine->varAST.initialiser = parseExpression();
     }
-
-    free(varDefine);
-    printf("var: %s\n", identifier->value.data);
     parseConsume(TOK_SEMICOLON, "Expected semi-colon after variable decleration!");
+
+    // TODO remove this, this is only for testing
+    free(varDefine);
+
     return 0;
 }
 
@@ -142,10 +168,6 @@ static ASTNode * parseFunDefine(uint8_t isStructMember){
 static ASTNode * parseExpression(){
     parseAdvance(1);
     return NULL;
-}
-
-static void deleteProgram(){
-    free(parser->program);
 }
 
 static inline Token * parseAdvance(uint32_t amount){

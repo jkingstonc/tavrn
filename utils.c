@@ -23,6 +23,13 @@ void addList(List * list, void * element){
     list->size++;
 }
 
+void * getList(List * list, uint32_t index){
+    ListNode * current = list->startNode;
+    for(uint32_t i = 0; i<index; i++)
+        current=current->next;
+    return current;
+}
+
 void insertList(List * list, void * element, uint32_t index){
     ListNode * current = list->startNode;
     uint32_t i = 0;
