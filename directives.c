@@ -87,6 +87,7 @@ static inline void * dirAdvance(uint32_t amount){
     for(int i = 0; i<amount; i++) {
         data = data = ((Token *) directivesProcessor->currentToken->data)->value.data;
         directivesProcessor->currentToken = directivesProcessor->currentToken->next;
+        directivesProcessor->currentTokenIndex++;
     }
     return data;
 }

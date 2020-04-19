@@ -8,19 +8,18 @@
 
 #include <time.h>
 
-
 int main() {
 
     clock_t begin = clock();
 
-    char * source = "struct Test : {   var x : u8; } struct Another : {   }";
+    char * source = "struct Test : { #macro[one, 1] var x : u8;  } ";
 
     // Perform lexical analysis
     List * tokens = lex(source);
 
     printf("before directives\n");
     debugTokenList(tokens);
-
+    if(tokens)
     tokens = processDirectives("currentFile.il", tokens);
 
     printf("after directives\n");
