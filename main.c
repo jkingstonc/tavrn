@@ -13,7 +13,7 @@ int main() {
 
     clock_t begin = clock();
 
-    char * source = "struct Test : {   } struct Another : {   }";
+    char * source = "struct Test : {   var x : u8; } struct Another : {   }";
 
     // Perform lexical analysis
     List * tokens = lex(source);

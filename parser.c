@@ -52,9 +52,11 @@ static void deleteASTNode(ASTNode * node){
         case STMT_STRUCT:{
             printf("deleting struct!\n");
             // Loop over each root node in the program
-            for(uint32_t i = 0; node->structAST.members->size; i++)
+            uint32_t membersSize = node->structAST.members->size;
+            for(uint32_t i = 0; i<membersSize; i++)
                 deleteASTNode(getList(node->structAST.members, i));
-            for(uint32_t i = 0; node->structAST.methods->size; i++)
+            uint32_t methodsSize = node->structAST.methods->size;
+            for(uint32_t i = 0; i<methodsSize; i++)
                 deleteASTNode(getList(node->structAST.methods, i));
             freeList(node->structAST.members);
             freeList(node->structAST.methods);
@@ -63,7 +65,7 @@ static void deleteASTNode(ASTNode * node){
         }
         case STMT_VAR_DEFINE:{
             printf("deleting var!\n");
-            if(node->varDefineAST.initialiser)
+            if(node->varDefineAST.initialiser!=NULL)
                 deleteASTNode(node->varDefineAST.initialiser);
             free(node);
             break;
@@ -172,7 +174,8 @@ static ASTNode * parseVarDefine(){
         // TODO This isn't very robust as it could mess with the synxax...
         if(PEEK()->type!=TOK_SEMICOLON)
             varDefine->varDefineAST.initialiser = parseExpression();
-    }
+    }else
+        varDefine->varDefineAST.initialiser = NULL;
     parseConsume(TOK_SEMICOLON, "Expected semi-colon after variable decleration!");
 
     return varDefine;
