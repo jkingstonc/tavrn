@@ -42,10 +42,10 @@ void removeTokenList(List * list, uint32_t index);
 void freeList(List * list);
 void freeTokenList(List * list);
 
-void initMap(Map * map, size_t initialSize, size_t keyDataSize, size_t valueDatasize);
-void insertMap(Map * map, void * key, void * value, size_t keyDatasize, size_t valueDatasize);
+void initMap(Map * map);
+void addMap(Map * map, void * key, void * value);
 void * getMap(Map * map, void * key, size_t keyDatasize);
-void * getString(Map * map, char * key);
+void * getStringMap(Map * map, char * key);
 void freeMap(Map * map);
 
 int baseToDecimal(char *str, int base);

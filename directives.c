@@ -16,7 +16,7 @@ static DirectivesProcessor * newDirectivesProcessor(List * tokens){
     directivesProcessor->usedFiles = (List*)malloc(sizeof(List));
     initList(directivesProcessor->usedFiles);
     directivesProcessor->macroMap = (Map*)malloc(sizeof(Map));
-    initMap(directivesProcessor->macroMap, 0, sizeof(char*), sizeof(char *));
+    initMap(directivesProcessor->macroMap);
     directivesProcessor->currentToken = directivesProcessor->tokens->startNode;
     directivesProcessor->currentTokenIndex = 0;
     directivesProcessor->currentError = -1;
@@ -43,6 +43,9 @@ List * processDirectives(char * currentFileName, List * tokens){
             if (strncmp(PEEK()->value.data, "macro", 5) == 0) {
                 char * macroName,  * macroValue;
 
+                // The token value of the macro
+                Token * macroTokenValue;
+
                 dirAdvanceDel(1);  // Consume the #macro token
 
                 if(!dirConsumeDel(TOK_LEFT_BRACET, "Expected '[' after macro!")) break;
@@ -59,8 +62,10 @@ List * processDirectives(char * currentFileName, List * tokens){
 
                 if(!dirConsumeDel(TOK_RIGHT_BRACKET, "Expected closing ']' after macro definition!")) break;
 
-                free(macroName);
-                free(macroValue);
+
+                addMap(directivesProcessor->macroMap, macroName, macroValue);
+//                free(macroName);
+//                free(macroValue);
 
                 /*
                  * Need to figure out how we are going to handle deleting the tokens. the problem is that
@@ -73,6 +78,21 @@ List * processDirectives(char * currentFileName, List * tokens){
                  * will free the values.
                  *
                  * */
+            }else{
+                // Check if we are referencing a macro
+                // Check if we are referencing a macro value
+                char * replacementValue = (char*)getStringMap(directivesProcessor->macroMap, PEEK()->value.data);
+                if (replacementValue!=NULL){
+                    printf("found macro replacement!!! %s\n", replacementValue);
+                    // Replace the token with the value
+                    // TODO Work out how we say it is a literal, identifier etc. To do this, we could store the token
+                    // in the macro map?
+                    free(PEEK()->value.data);
+                    PEEK()->type = TOK_IDENTIFIER;
+                    PEEK()->value.data = replacementValue;
+                    dirAdvance(1);
+                } else
+                    dirError(INVALID_MACRO, "The macro found doesn't match any existing macro definition!");
             }
         }else{
             dirAdvance(1);

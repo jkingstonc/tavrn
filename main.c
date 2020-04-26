@@ -12,7 +12,7 @@ int main() {
 
     clock_t begin = clock();
 
-    char * source = "struct Test : { #macro[one, 1] var x : u8;  } ";
+    char * source = "struct Test : { #macro[one, 1] var x : u8 #one;}";
 
     // Perform lexical analysis
     List * tokens = lex(source);

@@ -123,24 +123,29 @@ void freeTokenList(List *list) {
 
 
 
-void initMap(Map * map, size_t initialSize, size_t keyDataSize, size_t valueDatasize){
+void initMap(Map * map){
     initList(&map->keys);
     initList(&map->values);
 
 }
-void insertMap(Map * map, void * key, void * value, size_t keyDatasize, size_t valueDatasize){
+void addMap(Map * map, void * key, void * value){
     addList(&map->keys, key);
     addList(&map->values, value);
 }
 
 void * getStringMap(Map * map, char * key){
-//    for (int i = 0; i<map->keys.used; i++){
-//        //if(strncmp())
-//    }
+    for (uint32_t i = 0; i<map->keys.size; i++){
+        if(strcmp(getList(&map->keys, i), key)==0)
+            return getList(&map->values, i);
+    }
     return 0;
 }
 
 void * getMap(Map * map, void * key, size_t keyDatasize){
+    for (uint32_t i = 0; i<map->keys.size; i++){
+        if(getList(&map->keys, i) == key)
+            return getList(&map->values, i);
+    }
     return 0;
 }
 
@@ -149,11 +154,7 @@ void freeMap(Map * map){
     freeList(&map->values);
 }
 
-
-
-
-int baseToDecimal(char *str, int base)
-{
+int baseToDecimal(char *str, int base){
     int len = strlen(str);
     int power = 1; // Initialize power of base
     int num = 0;  // Initialize result

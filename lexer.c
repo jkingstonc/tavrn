@@ -9,7 +9,7 @@
 // Non-header functions
 
 
-#define END() (lexer->currentChar[0]==EOF || lexer->currentChar[0]=='\0' || lexer->charsConsumed >= lexer->sourceLength) ? 1 : 0
+#define END() (lexer->currentChar[0]==EOF || lexer->currentChar[0]=='\0' || lexer->charsConsumed > lexer->sourceLength) ? 1 : 0
 
 #define PEEK() (lexer->currentChar[0])
 #define PEEK_MORE() (lexer->currentChar[1])
@@ -128,7 +128,7 @@ List * lex(char * source){
                     alpha(c);
                 else
                     error("Unexpected character!", UNEXPECTED_CHAR);
-                break;
+		break;
             }
         }
         if(!NO_ERROR()) break;

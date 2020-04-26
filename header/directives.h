@@ -13,7 +13,8 @@
 #include <string.h>
 
 typedef enum DirectiveError{
-    DIR_UNEXPECTED_TOKEN
+    DIR_UNEXPECTED_TOKEN,
+    INVALID_MACRO
 }DirectiveError;
 
 typedef struct DirectivesProcessor{
